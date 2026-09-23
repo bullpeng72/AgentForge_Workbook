@@ -36,7 +36,7 @@ def _clients_for(case: dict) -> tuple[FakeLLMClient, FakeLLMClient, FakeLLMClien
             "domain": case["expected_domain"],
             "goal": case["brief"],
             "constraints": [],
-            "success_criteria": [],
+            "success_criteria": [f"{case['expected_domain']} 목표를 달성한다"],
         }
     )
     designer_client = FakeLLMClient({"roles": case["expected_roles"]})
@@ -45,11 +45,9 @@ def _clients_for(case: dict) -> tuple[FakeLLMClient, FakeLLMClient, FakeLLMClien
 
 
 @pytest.mark.parametrize("case", _CASES, ids=[c["id"] for c in _CASES])
-def test_v2_pipeline_with_mocked_llm(case: dict) -> None:
-    """v2: 4단계 전부(Spec Interpreter·Team Designer·Code Generator) mock으로 배선과
-    Verifier의 실제 crewai.Agent 생성까지 확인한다. Code Generator의 실제 Ollama 호출
-    검증은 eval/smoke_v2.py가 별도로 한다(pytest 스위트는 네트워크를 타지 않는다 —
-    Archivist 책의 기존 관례와 동일)."""
+def test_v3_pipeline_with_mocked_llm(case: dict) -> None:
+    """v3: 배선(v1)·Agent 실제 생성(v2)에 더해 결과물용 골든셋+eval 배선 자동생성까지
+    확인한다. 실제 GPT-5/Ollama 호출 검증은 eval/smoke_full.py가 별도로 한다."""
     interpreter_client, designer_client, generator_client = _clients_for(case)
 
     result = run(
@@ -62,9 +60,12 @@ def test_v2_pipeline_with_mocked_llm(case: dict) -> None:
     assert result.golden_data.domain == case["expected_domain"]
     assert result.team_design.roles == case["expected_roles"]
     assert result.verification.passed, result.verification.errors
+    assert result.verification.golden_set
+    assert result.verification.eval_wiring_py is not None
+    assert "@agent_eval" in result.verification.eval_wiring_py
 
 
-def test_v2_pipeline_is_deterministic_given_the_same_llm_output() -> None:
+def test_v3_pipeline_is_deterministic_given_the_same_llm_output() -> None:
     case = _CASES[0]
     first = run(case["brief"], **dict(zip(
         ("interpreter_client", "designer_client", "generator_client"), _clients_for(case)
@@ -74,3 +75,4 @@ def test_v2_pipeline_is_deterministic_given_the_same_llm_output() -> None:
     )))
     assert first.team_design.roles == second.team_design.roles
     assert first.generated.agents_yaml == second.generated.agents_yaml
+    assert first.verification.golden_set == second.verification.golden_set

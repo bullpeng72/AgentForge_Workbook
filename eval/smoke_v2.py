@@ -44,7 +44,7 @@ def main() -> int:
                 "domain": case["expected_domain"],
                 "goal": case["brief"],
                 "constraints": [],
-                "success_criteria": [],
+                "success_criteria": [f"{case['expected_domain']} 목표를 달성한다"],
             }
         )
         designer_client = _FakeLLMClient({"roles": case["expected_roles"]})

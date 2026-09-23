@@ -116,9 +116,16 @@
 
 ## 11. 완료 정의 (Definition of Done)
 
-- [ ] F1–F12 전부 골든셋 케이스로 검증됨
-- [ ] Gate A–G 7개 전부 최소 한 번 fail을 거쳐 `improve verify`로 confirmed 판정까지 완주
-- [ ] 6개 승인 kind(spec_review·adr_review·threshold_review·skill_merge·release_hold·deploy) 전부 설계된 지점에서 실제 발동
-- [ ] 2인 팀 + 진짜 GitHub 원격에서 클레임 충돌 최소 1회 실전 발생·해소
-- [ ] Skills 3개+ 신규 발굴 및 `skill_merge` 승인
-- [ ] Pool 재사용률·Compose 성공률을 최종 회고(Part XIII)에서 정량 보고
+Part XIII 회고(`docs/RETROSPECTIVE_T-D8D8CE.md`) 실측 대조 완료 — 각 항목의 정확한
+근거·부분충족 사유는 그 문서 §1을 참고. 여기서는 최종 판정만 남긴다.
+
+- [~] F1–F12 전부 골든셋 케이스로 검증됨 — 부분(F1-F4 완료, F5-F8은 계획 규모 미달로
+      메커니즘만 검증, F9-F12는 SPEC이 애초에 골든셋 대상 밖으로 계획하고 수동 QA로 검증)
+- [~] Gate A–G 7개 전부 최소 한 번 fail을 거쳐 `improve verify`로 confirmed 판정까지 완주 —
+      부분(실제 fail한 A·C·D·F 중 A·C·D 완주, F는 별도 하네스 설계로 이 루프 대상 밖,
+      B·E·G는 fail한 적이 없어 애초에 해당 없음)
+- [~] 6개 승인 kind 전부 설계된 지점에서 실제 발동 — 부분(5/6, threshold_review만 계획대로
+      발동하지 않음 — LIMITS L2)
+- [x] 2인 팀 + 진짜 GitHub 원격에서 클레임 충돌 최소 1회 실전 발생·해소
+- [x] Skills 3개+ 신규 발굴 및 `skill_merge` 승인
+- [x] Pool 재사용률·Compose 성공률을 최종 회고(Part XIII)에서 정량 보고

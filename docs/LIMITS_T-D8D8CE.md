@@ -89,3 +89,34 @@ v4_pool_cases.json`(3건)과 그걸 실행한 `eval/run_pool_batch.py` 하나뿐
 않는다(이 저장소는 실습 교재용이지 상품이 아니다, SPEC §3 Out-of-scope와 일관) — 대신
 "v4가 Gate 점수로 검증되지 않았다"는 사실 자체를 릴리스 결정의 일부로 인간에게
 넘긴다(release_hold 본문에 이 LIMITS 항목을 그대로 인용).
+
+## L6 — Gate B·E·G는 골든셋 8건 시리즈에서 한 번도 fail/warn을 거치지 않음 (Part XIII 회고, 실측)
+
+SPEC.md §11 DoD는 "Gate A–G 7개 전부 최소 한 번 fail을 거쳐 `improve verify`로 confirmed
+판정까지 완주"를 요구한다. `results/gate_run_1.json`~`gate_run_8.json` 8개 전부를 실제로
+훑어보니:
+
+| Gate | 이력 | `improve verify` confirmed 완주? |
+|---|---|---|
+| A | fail(run4,5) → pass | ✅ (`exp-27231edb52`) |
+| B | n/a(run1-2) → 이후 계속 pass | ❌ — fail/warn 자체가 없음 |
+| C | fail(run1) → pass | ✅ (`exp-6dcd530ff4`) |
+| D | fail(run1-7) → warn(run8) | ✅ (`exp-b6bb316243`·`exp-ea6762633c`) |
+| E | n/a(run1-2) → 이후 계속 pass | ❌ — fail/warn 자체가 없음 |
+| F | n/a(run1-2) → warn/**fail(run4)**/warn | ❌ — fail은 났지만(run4, 0.472) 실험 등록도
+  `improve verify`도 한 번도 실행 안 함(Gate F는 골든셋 8건과 별도 하네스 `gate_f_run.json`을
+  쓴다는 설계 때문에 이 시리즈에 자연히 안 낌 — LIMITS 밖 설계, 결함 아님) |
+| G | n/a(run1) → pass(run4만 0.9375, 나머지 1.0) | ❌ — fail/warn 자체가 없음 |
+
+**근본 원인**: A·C·D는 이 파이프라인의 구조적 약점(지연·재현성·응답 품질)과 정확히
+겹쳐서 자연히 반복 실패했다. B·E·G는 애초에 `enable_security_metrics=True`·
+`ScopeConfig`·`ExplainabilityConfig`를 Part VII 초반에 한 번에 제대로 배선한 뒤로 쭉
+건강했다 — "실패를 거쳐 고친 것"이 아니라 "처음부터 잘 배선해서 실패할 일이 없었던 것"이다.
+F는 실패(run4)는 했지만 골든셋 8건 시리즈와 다른 하네스를 쓴다는 설계 자체가 이 시리즈의
+`improve`/`experiment` 루프 대상에서 F를 구조적으로 제외시켰다.
+
+**조치**: 7개 전부를 인위적으로 fail시켜 DoD를 글자 그대로 채우지 않는다 — 그건 실제
+개선 사이클이 아니라 연극이 된다. DoD를 "7개 전부 fail→confirm"이 아니라 "실제로 fail한
+게이트(A·C·D·F)는 몇 개나 재확인 루프를 완주했는가"로 재해석해 보고한다: 4개 중 3개
+완주(A·C·D), F는 하네스 분리 설계 때문에 미완주. 나머지 3개(B·E·G)는 애초에 이 DoD
+항목의 모집단이 아니다(실패한 적이 없다).

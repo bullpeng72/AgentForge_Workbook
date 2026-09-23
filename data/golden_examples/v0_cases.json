@@ -1,0 +1,27 @@
+[
+  {
+    "id": "v0-01-support",
+    "brief": "고객 지원 티켓을 분류하고 우선순위를 매기는 에이전트 팀을 만들어줘",
+    "expected_domain": "support",
+    "expected_roles": ["Classifier", "Responder"]
+  },
+  {
+    "id": "v0-02-research",
+    "brief": "여러 출처에서 리서치 자료를 모아 보고서를 작성하는 팀을 만들어줘",
+    "expected_domain": "research",
+    "expected_roles": ["Researcher", "Writer"]
+  },
+  {
+    "id": "v0-03-code_review",
+    "brief": "코드 리뷰를 자동으로 해주는 에이전트를 만들어줘",
+    "expected_domain": "code_review",
+    "expected_roles": ["Reviewer"]
+  },
+  {
+    "id": "v0-04-ambiguous",
+    "brief": "뭔가 도와주는 것 좀 만들어줘",
+    "expected_domain": "generic",
+    "expected_roles": ["Worker"],
+    "note": "의도적으로 모호한 브리프 — Gate A 실패모드(SPEC §6 '모호한 브리프 파싱 실패')를 v0부터 재현하기 위한 케이스. generic으로 떨어지는 게 v0에서는 정답이지만, Part VII에서 Gate A를 실측하면 이 케이스가 낮은 점수의 원인이 된다."
+  }
+]

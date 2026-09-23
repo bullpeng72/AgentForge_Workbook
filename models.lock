@@ -1,0 +1,12 @@
+# AgentForge 재현성 계약 — 이 값을 바꾸면 책의 실측 수치가 재현 대상에서 벗어난다.
+# Tier 배정 근거는 docs/ADR_T-D8D8CE.md 결정 2 참고.
+
+tier1: claude-sonnet-5          # Spec Interpreter, Team Designer, Composer (AC/클라우드, 넓은 판단)
+tier2: qwen3-coder:latest       # Code Generator, Verifier (AOO/로컬, 좁은 실행 — 코드 생성/검증에 특화된 MoE 모델)
+seed: 42
+
+# v0는 규칙기반 스텁이라 위 모델을 아직 호출하지 않는다(LLM 없음) — v1(Part VI)부터 실제 사용.
+# ollama 0.34.1, tier2 모델은 이미 로컬에 pull됨(qwen3-coder:latest, 18GB).
+
+agent_evaluator_lib: 1.1.1
+agent_evaluator_cli: 1.1.1

@@ -8,10 +8,11 @@ class LLMClient(Protocol):
 
 
 class AnthropicClient:
-    """Tier 1(claude-sonnet-5, AC) 실제 호출 — ADR_T-D8D8CE.md 결정 2.
+    """Tier 1 후보 A(claude-sonnet-5, AC) — ADR_T-D8D8CE.md 결정 2 개정 이력 참고.
 
     ANTHROPIC_API_KEY가 없으면 생성 시점(또는 첫 호출 시점)에 실패한다 — 조용히
-    폴백하지 않는다(원칙2: 실패는 실패로 보인다).
+    폴백하지 않는다(원칙2: 실패는 실패로 보인다). 현재 Tier 1 기본값은 OpenAIClient —
+    이 클래스는 대체 프로바이더로 남겨둔다(LLMClient 프로토콜만 맞으면 교체 가능).
     """
 
     def __init__(self, model: str = "claude-sonnet-5") -> None:
@@ -27,6 +28,28 @@ class AnthropicClient:
             messages=[{"role": "user", "content": prompt}],
         )
         return response.content[0].text
+
+
+class OpenAIClient:
+    """Tier 1(GPT, AC) 실제 호출 — ADR_T-D8D8CE.md 결정 2 개정(Part VI, Anthropic 키
+    미확보로 실전 검증이 막혀 프로바이더 전환).
+
+    OPENAI_API_KEY가 없으면 생성 시점(또는 첫 호출 시점)에 실패한다 — 조용히
+    폴백하지 않는다(원칙2: 실패는 실패로 보인다).
+    """
+
+    def __init__(self, model: str = "gpt-5") -> None:
+        import openai
+
+        self._client = openai.OpenAI()
+        self._model = model
+
+    def complete(self, prompt: str) -> str:
+        response = self._client.chat.completions.create(
+            model=self._model,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return response.choices[0].message.content
 
 
 class OllamaClient:

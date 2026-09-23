@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 
-from agentforge.llm.client import AnthropicClient, LLMClient
+from agentforge.llm.client import LLMClient, OpenAIClient
 from agentforge.spec_interpreter.interpreter import GoldenData
 
 _PROMPT = """다음은 확정된 Golden Data다:
@@ -27,9 +27,9 @@ class TeamDesign:
 def design(golden_data: GoldenData, client: LLMClient | None = None) -> TeamDesign:
     """v1: Tier 1 LLM으로 역할분담을 설계한다(F2).
 
-    client를 안 주면 AnthropicClient를 지연 생성한다 — API 키가 없으면 여기서 실패한다.
+    client를 안 주면 OpenAIClient를 지연 생성한다 — API 키가 없으면 여기서 실패한다.
     """
-    client = client or AnthropicClient()
+    client = client or OpenAIClient()
     prompt = _PROMPT.format(
         domain=golden_data.domain,
         goal=golden_data.goal,

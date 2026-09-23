@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 
-from agentforge.llm.client import AnthropicClient, LLMClient
+from agentforge.llm.client import LLMClient, OpenAIClient
 
 _PROMPT = """다음은 새 에이전트 팀을 요청하는 자연어 브리프다:
 
@@ -24,9 +24,9 @@ class GoldenData:
 def interpret(brief: str, client: LLMClient | None = None) -> GoldenData:
     """v1: Tier 1 LLM으로 브리프를 Golden Data로 변환한다(F1).
 
-    client를 안 주면 AnthropicClient를 지연 생성한다 — API 키가 없으면 여기서 실패한다.
+    client를 안 주면 OpenAIClient를 지연 생성한다 — API 키가 없으면 여기서 실패한다.
     """
-    client = client or AnthropicClient()
+    client = client or OpenAIClient()
     raw = client.complete(_PROMPT.format(brief=brief))
     data = json.loads(raw)
     return GoldenData(

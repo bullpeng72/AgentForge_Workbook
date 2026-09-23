@@ -1,12 +1,16 @@
 # AgentForge 재현성 계약 — 이 값을 바꾸면 책의 실측 수치가 재현 대상에서 벗어난다.
 # Tier 배정 근거는 docs/ADR_T-D8D8CE.md 결정 2 참고.
 
-tier1: claude-sonnet-5          # Spec Interpreter, Team Designer, Composer (AC/클라우드, 넓은 판단)
+tier1: gpt-5                    # Spec Interpreter, Team Designer, Composer (AC/클라우드, 넓은 판단)
 tier2: qwen3-coder:latest       # Code Generator, Verifier (AOO/로컬, 좁은 실행 — 코드 생성/검증에 특화된 MoE 모델)
 seed: 42
 
 # v0는 규칙기반 스텁이라 위 모델을 아직 호출하지 않는다(LLM 없음) — v1(Part VI)부터 실제 사용.
 # ollama 0.34.1, tier2 모델은 이미 로컬에 pull됨(qwen3-coder:latest, 18GB).
+#
+# tier1 개정(v2 이후): 원래 claude-sonnet-5였으나 이 환경에 ANTHROPIC_API_KEY가 끝내
+# 준비되지 않아 실전 검증이 막혀 있었다 — gpt-5로 전환(OPENAI_API_KEY 필요). AnthropicClient는
+# llm/client.py에 대체 프로바이더로 남겨뒀다(LLMClient 프로토콜만 맞으면 언제든 되돌릴 수 있음).
 
 agent_evaluator_lib: 1.1.1
 agent_evaluator_cli: 1.1.1

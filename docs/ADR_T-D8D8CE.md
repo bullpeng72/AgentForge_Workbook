@@ -41,6 +41,12 @@ SPEC.md(승인됨, `spec-approved`)가 F1–F12를 정의했다. 이 요구사�
 정확한 모델 이름·버전 핀은 이 ADR의 범위가 아니다 — Part V(v0 착수) 시점에 `models.lock`으로
 별도 확정한다(원칙5 §9: Tier 배정과 모델 핀은 별개 결정).
 
+**개정(Part VI, v2 완료 후)**: Tier 1 모델을 claude-sonnet-5 → gpt-5(OpenAI)로 전환했다.
+ANTHROPIC_API_KEY를 끝내 확보하지 못해 Tier 1 구간(Spec Interpreter·Team Designer)이 v2까지
+계속 mock 상태로 남아 있었다 — Tier 배정(축·근거)은 프로바이더와 무관하므로 결정 자체는
+그대로 유지하고, `models.lock`의 모델 핀만 바꿨다. `AnthropicClient`는 `llm/client.py`에
+대체 프로바이더로 남겨뒀다(LLMClient 프로토콜만 맞으면 언제든 되돌릴 수 있음).
+
 ## 결정 3 — AgentContract 스키마 = Pydantic v2 (SPEC §10 재확인)
 
 CrewAI 생태계 자체가 Pydantic v2 기반이라 별도 스키마 언어를 새로 배울 필요가 없고,

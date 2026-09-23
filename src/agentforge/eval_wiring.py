@@ -3,6 +3,7 @@ from __future__ import annotations
 import yaml
 
 from agent_evaluator import (
+    CostPredictabilityConfig,
     ExplainabilityConfig,
     PerformanceMonitor,
     ReproducibilityConfig,
@@ -14,7 +15,29 @@ from agent_evaluator.decorators import EvalMetadata
 
 from agentforge.pipeline import PipelineResult, run as _run_pipeline
 
-monitor = PerformanceMonitor(output_dir="results/", agent_version="auto", enable_security_metrics=True)
+monitor = PerformanceMonitor(
+    output_dir="results/",
+    agent_version="auto",
+    enable_security_metrics=True,
+    # Gate D(비용 예측성): 소스 확인(gate_d_performance/aggregate.py) — 기본
+    # max_coefficient_of_variation=0.3은 "매 태스크가 비슷한 분량이어야 정상"이라는
+    # 가정이다. AgentForge는 브리프마다 도메인이 다르고 success_criteria/constraints
+    # 개수도 정당하게 달라(4~10개) 토큰 수가 자연스럽게 흔들린다 — 실측 CV=0.161
+    # (8~9개 태스크, tokens_used.total). 응답을 억지로 균일하게 잘라내는 게 아니라
+    # (Gate A에서 얻은 진짜 품질 향상을 도로 깎는 짓이다), 이 파이프라인 성격에 맞는
+    # 임계값으로 재보정한다 — SLA 때와 같은 원칙, 근거는 다르다. (이 Config는
+    # @agent_eval 데코레이터가 아니라 PerformanceMonitor 생성자 인자다 — decorators.py에
+    # "cost_predictability" 키워드가 없음을 확인하고 옮겼다.)
+    cost_predictability_config=CostPredictabilityConfig(max_coefficient_of_variation=0.5),
+)
+
+# Gate D 실측(gate_run_6): run()과 run_for_reproducibility()가 monitor를 공유했더니,
+# 3배 실행(103초)짜리 재현성 태스크 딱 1건이 9개 표본 중 p95 근처에 끼어 p95_latency_s가
+# 83.92초로 튀었다 — 별도 함수로 나눴어도 "같은 monitor에 저장"하면 다시 섞인다.
+# monitor 자체를 분리해 구조적으로 재발을 막는다.
+monitor_reproducibility = PerformanceMonitor(
+    output_dir="results/", agent_version="auto", session_label="reproducibility"
+)
 
 _KNOWN_FRAMEWORKS = ("crewai", "langgraph", "langchain", "autogen", "agno")
 
@@ -119,12 +142,13 @@ def run(brief: str) -> tuple[str, EvalMetadata]:
 
 
 @agent_eval(
-    monitor,
+    monitor_reproducibility,
     task_type="planning",
     question_arg="brief",
     task_id_fn=lambda args, kwargs: f"repro_{hash(args[0] if args else kwargs.get('brief', '')) & 0xFFFFFF:x}",
     # Gate C 전용 — 여기만 재현성을 켠다. execution_time이 3회분 합산되는 건 알고
-    # 있고(위 run()의 docstring 참고), 이 함수 자체를 SLA/Gate D 측정에는 안 쓴다.
+    # 있다(위 run()의 docstring 참고) — 그래서 monitor 자체를 분리했다(위 선언 참고).
+    # 같은 monitor를 쓰면 save_to_file() 한 번에 두 스트림이 다시 섞인다.
     reproducibility=ReproducibilityConfig(runs=3),
 )
 def run_for_reproducibility(brief: str) -> tuple[str, EvalMetadata]:

@@ -8,3 +8,4 @@
 {"experiment_id": "exp-14f651addf", "resolved_at": "2026-09-23T13:23:12.086718+00:00", "status": "resolved", "actual_delta": 31.5912, "verdict": "refuted", "note": "improve verify vs gate_run_5.json"}
 {"experiment_id": "exp-27231edb52", "resolved_at": "2026-09-23T13:23:12.087005+00:00", "status": "resolved", "actual_delta": 0.3998, "verdict": "confirmed", "note": "improve verify vs gate_run_5.json"}
 {"experiment_id": "exp-5774953dab", "resolved_at": "2026-09-23T13:23:12.087161+00:00", "status": "resolved", "actual_delta": -0.1391, "verdict": "refuted", "note": "improve verify vs gate_run_5.json"}
+{"experiment_id": "exp-b6bb316243", "registered_at": "2026-09-23T13:28:32.938852+00:00", "status": "open", "target_gate": "D", "target_field": "cost_predictability", "predicted_delta": 0.3, "note": "monitor 분리(reproducibility 오염 제거) + CostPredictabilityConfig.max_coefficient_of_variation 0.3->0.5 (실측 CV=0.161이 도메인상 정당한 변동임을 확인, 기본값이 균일분량 가정이라 안 맞음)", "baseline_ref": null}

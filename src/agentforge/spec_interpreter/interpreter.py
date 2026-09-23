@@ -1,12 +1,16 @@
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field
 
-_DOMAIN_KEYWORDS: dict[str, list[str]] = {
-    "support": ["고객", "지원", "티켓", "문의"],
-    "research": ["리서치", "보고서", "조사", "자료"],
-    "code_review": ["코드", "리뷰", "검토"],
-}
+from agentforge.llm.client import AnthropicClient, LLMClient
+
+_PROMPT = """다음은 새 에이전트 팀을 요청하는 자연어 브리프다:
+
+{brief}
+
+이 브리프를 분석해 아래 JSON 스키마로만 응답하라(다른 텍스트 없이):
+{{"domain": "<한 단어, 예: support/research/code_review/generic>", "goal": "<목표 한 문장>", "constraints": ["<제약1>", "..."], "success_criteria": ["<성공기준1>", "..."]}}"""
 
 
 @dataclass
@@ -17,17 +21,17 @@ class GoldenData:
     success_criteria: list[str] = field(default_factory=list)
 
 
-def interpret(brief: str) -> GoldenData:
-    """v0: 키워드 매칭으로 브리프를 Golden Data로 변환한다. LLM 없음(F1 스텁)."""
-    matched_domain = "generic"
-    for domain, keywords in _DOMAIN_KEYWORDS.items():
-        if any(kw in brief for kw in keywords):
-            matched_domain = domain
-            break
+def interpret(brief: str, client: LLMClient | None = None) -> GoldenData:
+    """v1: Tier 1 LLM으로 브리프를 Golden Data로 변환한다(F1).
 
+    client를 안 주면 AnthropicClient를 지연 생성한다 — API 키가 없으면 여기서 실패한다.
+    """
+    client = client or AnthropicClient()
+    raw = client.complete(_PROMPT.format(brief=brief))
+    data = json.loads(raw)
     return GoldenData(
-        domain=matched_domain,
-        goal=brief.strip(),
-        constraints=[],
-        success_criteria=[f"{matched_domain} 도메인 팀이 생성된다"],
+        domain=data["domain"],
+        goal=data["goal"],
+        constraints=data.get("constraints", []),
+        success_criteria=data.get("success_criteria", []),
     )

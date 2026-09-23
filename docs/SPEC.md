@@ -19,7 +19,8 @@
 - 출력 프레임워크: **CrewAI 하나만**(스코프 폭발 방지 — CAAS 사례에서 배운 교훈)
 - 버전 v0–v5(§9)
 - Agent Pool 재사용 + Composer + AgentContract 호환성 체크
-- FastAPI+Jinja2 Web UI(Autopilot 대시보드와 동일 패턴 재사용)
+- FastAPI Web UI(Autopilot 대시보드와 동일 패턴 재사용 — 실측 정정: 그 패턴은 Jinja2 엔진이
+  아니라 순수 f-string HTML + `html.escape`다, ADR_T-D8D8CE.md 결정 5 참고)
 
 **Out-of-scope (명시적 비목표)**
 - LangGraph·Agno·ReAct 등 타 프레임워크 출력 — `multi-agent-generator`가 이미 하는 영역, 재발명 안 함(원칙4)
@@ -92,7 +93,7 @@
 **이 프로젝트에서 신규 발굴 예정**(Part IX·X):
 - `pool-compatibility-check` — AgentContract 스키마 대조 절차
 - `agent-contract-versioning` — pooled 에이전트 버전 변경 시 하위 조합에 전파하는 절차
-- `webui-dashboard-scaffold` — FastAPI+Jinja2로 SDK 대시보드 패턴을 재사용해 새 화면을 붙이는 절차(Autopilot 대시보드 코드에서 패턴 추출)
+- `webui-dashboard-scaffold` — FastAPI + f-string HTML(`html.escape`, Jinja2 미사용)로 SDK 대시보드 패턴을 재사용해 새 화면을 붙이는 절차(Autopilot 대시보드 코드에서 패턴 추출). Part XI에서 실제로 이 절차를 한 번 밟았지만 아직 3회+ 반복은 아니다 — `skills detect` 기준(3회+)을 채우면 그때 실제 스킬화한다(L3와 같은 원칙, 억지로 미리 만들지 않는다).
 
 ## 9. 버전 궤적 / 골든셋
 

@@ -14,3 +14,20 @@
 **조치**: 조작해 되돌리지 않고 기록만 남긴다. 향후 phase policy(`agent-eval autopilot phase
 policy set --to 1 --require-approval spec_review`)를 Part I에서 미리 선언해뒀다면 이 스킵
 자체가 원천적으로 막혔을 것 — Part IV 착수 전에 남은 모든 phase에 대해 policy를 미리 선언한다.
+
+## L2 — threshold_review가 계획대로 발동하지 않음 (Part VII 종료 시점, 실측)
+
+SPEC.md §7은 "작은 골든셋(8건)에서 Wilson CI가 자연히 애매해지는 구간이 발생해
+`threshold_review`가 의도적으로 발동한다"고 계획했다. 실제로 `agent-eval gate
+results/gate_run_8.json --tcr 85 --hold-on-undecided`를 실행해봤지만 TCR이 100%로
+나와 85% 임계값과 전혀 가깝지 않아 exit 75가 발동하지 않았다(exit 0).
+
+**근본 원인**: 표본이 작다고 Wilson CI가 자동으로 임계값을 걸치는 게 아니다 —
+합격률 자체가 임계값 근처(예: 82~88%)여야 애매해진다. 우리 TCR은 8건 중 실패가
+0~1건뿐이라 100%나 87.5%로 나왔고, 둘 다 85% 근처이긴 하지만 "Confidence is LOW"
+서술과 별개로 실제 exit 75 조건(Wilson CI가 임계값을 걸침)까지는 안 갔다.
+
+**조치**: 계획을 강제로 재현하려고 임계값을 임의로 조작하지 않는다 — 이건
+`threshold_review`가 "작은 표본이면 무조건 발동"하는 기능이 아니라는 걸 배운
+것으로 기록하고 넘어간다. `approvals scan-thresholds`도 exit 75가 한 번도 없었으니
+당연히 아무것도 안 잡는다(확인함).

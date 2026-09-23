@@ -212,7 +212,7 @@ def create_app(
         task_rows = "".join(
             f'<tr><td>{_esc(str(t.get("task_id")))}</td><td>{_esc(str(t.get("title")))}</td>'
             f'<td>phase {_esc(str(t.get("current_phase")))} '
-            f'({_esc(PHASE_LABELS.get(t.get("current_phase"), "—"))})</td></tr>'
+            f'({_esc(_task_phase_label(t))})</td></tr>'
             for t in tasks
         )
         approval_items = "".join(
@@ -291,6 +291,14 @@ def _action_class(action: str) -> str:
         "flag_for_human": "pending",
         "generate_new": "draft",
     }.get(action, "")
+
+
+def _task_phase_label(task: dict[str, Any]) -> str:
+    """PHASE_LABELS는 dict[int, str] — task.get("current_phase")는 (JSON에서 온
+    값이라) Any | None이라 그대로 넘기면 타입체커가 None 유입을 못 걸러낸다.
+    실제로 phase가 없는 태스크는 없지만, 있다고 가정하지 않는다."""
+    phase = task.get("current_phase")
+    return PHASE_LABELS.get(phase, "—") if isinstance(phase, int) else "—"
 
 
 _STYLE = """

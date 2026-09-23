@@ -22,12 +22,19 @@ class AnthropicClient:
         self._model = model
 
     def complete(self, prompt: str) -> str:
+        from anthropic.types import TextBlock
+
         response = self._client.messages.create(
             model=self._model,
             max_tokens=1024,
             messages=[{"role": "user", "content": prompt}],
         )
-        return response.content[0].text
+        block = response.content[0]
+        if not isinstance(block, TextBlock):
+            # 원칙2: 조용히 폴백하지 않는다 — 텍스트가 아닌 블록(thinking/tool_use 등)이
+            # 오면 그 자리에서 실패로 드러낸다.
+            raise RuntimeError(f"expected a text content block, got {type(block).__name__}")
+        return block.text
 
 
 class OpenAIClient:
@@ -58,7 +65,12 @@ class OpenAIClient:
             messages=[{"role": "user", "content": prompt}],
             seed=self._seed,
         )
-        return response.choices[0].message.content
+        content = response.choices[0].message.content
+        if content is None:
+            # 원칙2: 조용히 폴백하지 않는다 — 텍스트가 없는 응답(예: tool-call만 온 경우)은
+            # 그 자리에서 실패로 드러낸다.
+            raise RuntimeError("OpenAI response had no text content")
+        return content
 
 
 class OllamaClient:

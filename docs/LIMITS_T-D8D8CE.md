@@ -31,3 +31,17 @@ results/gate_run_8.json --tcr 85 --hold-on-undecided`를 실행해봤지만 TCR�
 `threshold_review`가 "작은 표본이면 무조건 발동"하는 기능이 아니라는 걸 배운
 것으로 기록하고 넘어간다. `approvals scan-thresholds`도 exit 75가 한 번도 없었으니
 당연히 아무것도 안 잡는다(확인함).
+
+## L3 — skills detect가 Part IX 시점에 아무것도 못 찾음 (실측)
+
+SPEC.md §8은 Part IX에서 3개+ 스킬이 "발굴"된다고 계획했지만, `agent-eval autopilot
+skills detect`를 실제로 돌려보니 "No repeated checklist pattern found (threshold: 3+
+occurrences)"였다. 원인은 명확하다 — 이 시점까지 연 승인이 `spec_review` 1건,
+`adr_review` 1건뿐이라, 같은 kind의 체크리스트가 3회 이상 반복될 데이터 자체가 없다.
+`skills detect`는 **Autopilot 승인 체크리스트의 반복 형태**만 본다 — 사람이 수작업으로
+반복한 절차(RCA→recommend_fix→SDK 소스 확인→수정→실험 검증)는 그 탐지 범위 밖이다.
+
+**조치**: 억지로 승인을 더 만들어 탐지를 통과시키지 않는다. 대신 이 프로젝트에서
+실제로 6번 반복된 진짜 절차(아래 3개 스킬)를 수작업으로 스킬화한다 — `skills
+scaffold`(탐지된 후보 필요)가 아니라 직접 작성. `skill_merge` 승인 시 이 근거(반복
+횟수·커밋 해시)를 그대로 명시한다.

@@ -1,0 +1,81 @@
+{
+  "members": [
+    {
+      "id": "hy",
+      "name": "하윤",
+      "roles": [
+        "PM"
+      ],
+      "github": null,
+      "codeowner_scopes": [],
+      "joined_at": "2026-09-23T10:51:56.922479+00:00",
+      "synced": false
+    },
+    {
+      "id": "dk",
+      "name": "도경",
+      "roles": [
+        "분석"
+      ],
+      "github": null,
+      "codeowner_scopes": [],
+      "joined_at": "2026-09-23T10:51:57.018525+00:00",
+      "synced": false
+    },
+    {
+      "id": "es",
+      "name": "은서",
+      "roles": [
+        "설계"
+      ],
+      "github": null,
+      "codeowner_scopes": [],
+      "joined_at": "2026-09-23T10:51:57.114274+00:00",
+      "synced": false
+    },
+    {
+      "id": "jh",
+      "name": "지호",
+      "roles": [
+        "개발"
+      ],
+      "github": null,
+      "codeowner_scopes": [],
+      "joined_at": "2026-09-23T10:51:57.210392+00:00",
+      "synced": false
+    },
+    {
+      "id": "cr",
+      "name": "채린",
+      "roles": [
+        "개발"
+      ],
+      "github": null,
+      "codeowner_scopes": [],
+      "joined_at": "2026-09-23T10:51:57.306940+00:00",
+      "synced": false
+    },
+    {
+      "id": "sm",
+      "name": "수민",
+      "roles": [
+        "QA"
+      ],
+      "github": null,
+      "codeowner_scopes": [],
+      "joined_at": "2026-09-23T10:51:57.403648+00:00",
+      "synced": false
+    },
+    {
+      "id": "ow",
+      "name": "원우",
+      "roles": [
+        "보안"
+      ],
+      "github": null,
+      "codeowner_scopes": [],
+      "joined_at": "2026-09-23T10:51:57.500462+00:00",
+      "synced": false
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "task_id": "T-D8D8CE",
+  "title": "AgentForge v0-v5",
+  "platform": "AC",
+  "priority": "normal",
+  "current_phase": 0,
+  "phase_label": "부트스트랩",
+  "owners": {
+    "analysis": "도경",
+    "design": "은서",
+    "development": "지호",
+    "qa": "수민",
+    "pm": "하윤",
+    "security": "원우"
+  },
+  "phase_history": [
+    {
+      "phase": 0,
+      "entered_at": "2026-09-23T10:52:00.548100+00:00",
+      "exited_at": null,
+      "mode": "auto"
+    }
+  ],
+  "blocking_on": [],
+  "last_gate_run": null,
+  "created_at": "2026-09-23T10:52:00.548100+00:00",
+  "status": "active",
+  "last_updated_at": "2026-09-23T10:52:14.637845+00:00",
+  "last_updated_by": "하윤"
+}

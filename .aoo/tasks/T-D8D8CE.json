@@ -3,8 +3,8 @@
   "title": "AgentForge v0-v5",
   "platform": "AC",
   "priority": "normal",
-  "current_phase": 0,
-  "phase_label": "부트스트랩",
+  "current_phase": 2,
+  "phase_label": "설계",
   "owners": {
     "analysis": "도경",
     "design": "은서",
@@ -17,6 +17,12 @@
     {
       "phase": 0,
       "entered_at": "2026-09-23T10:52:00.548100+00:00",
+      "exited_at": "2026-09-23T10:55:03.791497+00:00",
+      "mode": "auto"
+    },
+    {
+      "phase": 2,
+      "entered_at": "2026-09-23T10:55:03.791497+00:00",
       "exited_at": null,
       "mode": "auto"
     }

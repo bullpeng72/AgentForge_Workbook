@@ -4,5 +4,8 @@
     "6": "skill_merge",
     "7": "release_hold",
     "8": "deploy"
-  }
+  },
+  "gate_ready": [
+    8
+  ]
 }

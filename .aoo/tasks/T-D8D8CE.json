@@ -3,8 +3,8 @@
   "title": "AgentForge v0-v5",
   "platform": "AC",
   "priority": "normal",
-  "current_phase": 7,
-  "phase_label": "릴리스 후보",
+  "current_phase": 8,
+  "phase_label": "운영",
   "owners": {
     "analysis": "도경",
     "design": "은서",
@@ -53,6 +53,12 @@
     {
       "phase": 7,
       "entered_at": "2026-09-23T14:42:01.225550+00:00",
+      "exited_at": "2026-09-23T14:46:01.231811+00:00",
+      "mode": "auto"
+    },
+    {
+      "phase": 8,
+      "entered_at": "2026-09-23T14:46:01.231811+00:00",
       "exited_at": null,
       "mode": "auto"
     }

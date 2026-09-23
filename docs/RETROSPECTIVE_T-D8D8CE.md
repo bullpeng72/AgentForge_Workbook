@@ -48,6 +48,13 @@ SupportTriage(AC책)의 실제 최종 지표는 그 두 저장소 자신의 `res
 "추정"이 되어 이 프로젝트 전체의 원칙(허구 수치 금지)에 어긋난다. 실제 집필 시점에 세 저장소를
 모두 열어 각자의 `results/final/*.json`을 대조해 채운다.
 
+**추가(부록 집필 시점, 워크북 부록 K)**: 이후 워크북 부록을 쓰면서 두 저장소를 실제로 열어
+대조했다 — `AOO_Autopilot_Workbook/Appendix/C_*.md`·`K_*.md`와
+`Harness_Methodology_Workbook/Appendix/C_*.md`를 직접 읽어 실측값을 확인했다. 결과는
+`Media/AgentForge_Workbook/Appendix/K_세_책_9+2지표_비교.md`가 정본이다. 이 문서(이
+회고 자체)는 미룬 시점의 판단을 그대로 보존한다 — 나중에 채워졌다고 위 문단을 지우지
+않는다.
+
 ## 4. 한눈에 — 무엇이 정말 어려웠나
 
 - **Gate D(성능계약)는 끝내 안 풀렸다.** 두 번의 진짜 개선 시도(exp-b6bb316243 확인·delta,

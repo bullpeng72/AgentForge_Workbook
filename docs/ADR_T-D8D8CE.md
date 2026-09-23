@@ -96,7 +96,7 @@ SQLite PRIMARY KEY라 **pool 항목 하나마다 고유**해야 하고(`_populat
 ## 결과 / 트레이드오프
 
 - Tier 1 컴포넌트 3개(Spec Interpreter·Team Designer·Composer) 모두 클라우드 호출이라,
-  Gate D(비용·지연)에서 Tier 1 비중이 SupportTriage류 단일에이전트보다 높게 나올 것으로
+  Gate D(비용·지연)에서 Tier 1 비중이 단일 에이전트 파이프라인보다 높게 나올 것으로
   예상된다 — Part VII에서 실측하고, 필요하면 `tier_downshift` 신호를 검토한다.
 - Composer를 Tier 1으로 둔 결정은 Pool이 커질수록(재사용 후보가 많아질수록) 지연이 늘어날
   잠재 리스크가 있다 — Part X(Pool과 재사용) 착수 시 재검토 대상으로 남긴다.

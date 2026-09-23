@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+
 import yaml
 
 from agent_evaluator import (
@@ -105,8 +107,21 @@ def _build_response(brief: str, result: PipelineResult) -> str:
     )
 
 
+def _task_id_for_brief(brief: str) -> str:
+    """ADR 결정 6(Part XI) — Pool의 origin_task_id가 실제 results/*.json의
+    task_id와 맞아떨어지려면, run()의 task_id_fn과 여기가 같은 값을 내야 한다.
+    같은 브리프가 한 배치 안에서 두 번 쓰이지 않는다는 전제다(골든셋 전부
+    서로 다른 브리프 — run_for_reproducibility()의 기존 hash 기반 task_id_fn도
+    같은 전제)."""
+    return f"forge_{hashlib.sha1(brief.encode('utf-8')).hexdigest()[:12]}"
+
+
 def _run_and_build_metadata(brief: str, *, use_pool: bool = False) -> tuple[str, EvalMetadata]:
-    result = _run_pipeline(brief, pool=pool if use_pool else None)
+    result = _run_pipeline(
+        brief,
+        pool=pool if use_pool else None,
+        origin_task_id=_task_id_for_brief(brief) if use_pool else None,
+    )
     response = _build_response(brief, result)
     metadata = EvalMetadata(
         completion_score=1.0 if result.verification.passed else 0.0,
@@ -134,6 +149,9 @@ def _run_and_build_metadata(brief: str, *, use_pool: bool = False) -> tuple[str,
     monitor,
     task_type="planning",
     question_arg="brief",
+    # ADR 결정 6(Part XI) — Pool의 origin_task_id가 실제 task_id를 가리키려면
+    # 여기서 부여하는 ID와 _run_and_build_metadata()가 계산하는 ID가 같아야 한다.
+    task_id_fn=lambda args, kwargs: _task_id_for_brief(args[0] if args else kwargs.get("brief", "")),
     # Gate D: 실측 근거 — 단일 실행 5건 타이밍(interpret 16~29s + design 9~18s +
     # generate 6~12s)이 33~45s에 분포. 앞서 p95=158~191s로 봤던 건 파이프라인이
     # 느린 게 아니라 ReproducibilityConfig(runs=3)의 추가 2회 실행이 execution_time

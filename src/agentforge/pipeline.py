@@ -29,6 +29,7 @@ def run(
     brief: str,
     *,
     pool: PoolIndex | None = None,
+    origin_task_id: str | None = None,
     interpreter_client: LLMClient | None = None,
     designer_client: LLMClient | None = None,
     generator_client: LLMClient | None = None,
@@ -70,13 +71,18 @@ def run(
     verification = verify(generated, golden_data)
 
     if verification.passed:
-        _populate_pool(pool, golden_data, roles_to_generate, generated_new)
+        _populate_pool(pool, golden_data, roles_to_generate, generated_new, origin_task_id=origin_task_id)
 
     return PipelineResult(golden_data, team_design, generated, verification, compose_result)
 
 
 def _populate_pool(
-    pool: PoolIndex, golden_data: GoldenData, new_roles: list[str], generated_new: GeneratedCode | None
+    pool: PoolIndex,
+    golden_data: GoldenData,
+    new_roles: list[str],
+    generated_new: GeneratedCode | None,
+    *,
+    origin_task_id: str | None = None,
 ) -> None:
     """검증 통과한 신규 생성 에이전트만 Pool에 추가한다 — 재사용해온 것은 이미
     있으므로 다시 넣지 않는다.
@@ -108,5 +114,6 @@ def _populate_pool(
                 output_description=f"{role} 역할: {golden_data.success_criteria}",
                 source_task_id=f"pool-{uuid.uuid4().hex[:12]}",
                 agents_yaml_snippet=snippet,
+                origin_task_id=origin_task_id,
             )
         )

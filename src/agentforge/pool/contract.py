@@ -16,6 +16,12 @@ class AgentContract(BaseModel):
     output_description: str
     source_task_id: str
     agents_yaml_snippet: str
+    # ADR 결정 6(Part XI) — source_task_id는 pool 항목 자체의 PK(역할별로 고유해야
+    # 함)라 results/*.json의 실제 평가 task_id와 다르다(한 번의 호출이 여러 역할을
+    # 만들면 여러 역할이 같은 실행을 공유). Gate 점수를 results/*.json에서 역참조할
+    # 때는 이 필드를 쓴다 — None이면 그 항목을 만든 실행의 원 task_id를 모른다는 뜻
+    # (예: 오프라인 테스트가 직접 add()한 경우).
+    origin_task_id: str | None = None
 
 
 def domains_match(a: AgentContract, domain: str) -> bool:

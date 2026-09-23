@@ -1,0 +1,4 @@
+{"claim_id": "c-8e534430", "developer": "지호", "scope": ["src/agentforge/verifier/"], "started_at": "2026-09-23T13:59:51.737377+00:00", "status": "active"}
+{"claim_id": "c-78aa78d9", "developer": "채린", "scope": ["src/agentforge/"], "started_at": "2026-09-23T13:59:51.820627+00:00", "status": "active"}
+{"claim_id": "c-78aa78d9", "status": "released", "released_at": "2026-09-23T14:00:03.396790+00:00"}
+{"claim_id": "c-01be1dbb", "developer": "채린", "scope": [".github/workflows/"], "started_at": "2026-09-23T14:00:03.479871+00:00", "status": "active"}

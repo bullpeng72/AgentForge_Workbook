@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality:
+    name: Offline tests (pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -e ".[dev]"
+      - run: pytest tests/unit/ -v
+      # 실제 GPT-5/Ollama 호출이 필요한 통합 검증(eval/run_batch.py, eval/smoke_*.py)은
+      # CI에서 돌리지 않는다 — API 키·로컬 Ollama 서버가 CI 러너에 없다. pytest 스위트는
+      # 처음부터 이 경계를 mock으로 분리해뒀다(tests/unit/fakes.py).
+
+  gate:
+    name: Harness Gate (committed baseline)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -e .
+      # results/final/baseline.json은 커밋된 실측 결과다(§ README) — CI는 새로 실행하지
+      # 않고 이 파일을 정적으로 게이트 검사한다. 실제 재측정은 API 비용이 들어 로컬/
+      # 수동으로만 한다.
+      - run: agent-eval gate results/final/baseline.json --tcr 85
+
+  team-hygiene:
+    name: Claims audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -e .
+      - run: agent-eval claims audit --ttl-hours 8

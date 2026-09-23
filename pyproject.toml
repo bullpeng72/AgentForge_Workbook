@@ -34,3 +34,8 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# 패키지는 src-layout(pip install -e .로 해석), 테스트 헬퍼(tests/unit/fakes.py)는
+# `tests.unit.fakes`로 임포트한다 — 이 옵션이 없으면 `python -m pytest`로는 되고
+# bare `pytest`/CI에서는 `tests` 패키지 해석이 깨진다(실측, PYTHONPATH=src만으론
+# 안 됨 — -m 호출이 암묵적으로 붙여주던 cwd를 안 붙여줘서).
+pythonpath = ["."]

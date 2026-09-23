@@ -1,0 +1,5 @@
+[
+  {"id": "v4-01-support-base", "brief": "고객 지원 티켓을 분류하는 에이전트를 만들어줘"},
+  {"id": "v4-02-support-extended", "brief": "고객 지원 티켓을 분류하고 번역도 하는 팀을 만들어줘"},
+  {"id": "v4-03-support-triage", "brief": "고객 지원 티켓을 분류하고 우선순위를 매기는 팀을 만들어줘"}
+]

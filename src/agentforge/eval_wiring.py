@@ -14,6 +14,11 @@ from agent_evaluator import (
 from agent_evaluator.decorators import EvalMetadata
 
 from agentforge.pipeline import PipelineResult, run as _run_pipeline
+from agentforge.pool.index import PoolIndex
+
+# Part X(F5-F8) — 배치 전체가 공유하는 Pool. ADR 결정 4(SQLite, agent_evaluator의
+# sqlite_backend와 같은 설계: 최소 스칼라 컬럼 + JSON blob 하나)를 그대로 따른다.
+pool = PoolIndex(db_path="results/pool_index.db")
 
 monitor = PerformanceMonitor(
     output_dir="results/",
@@ -100,8 +105,8 @@ def _build_response(brief: str, result: PipelineResult) -> str:
     )
 
 
-def _run_and_build_metadata(brief: str) -> tuple[str, EvalMetadata]:
-    result = _run_pipeline(brief)
+def _run_and_build_metadata(brief: str, *, use_pool: bool = False) -> tuple[str, EvalMetadata]:
+    result = _run_pipeline(brief, pool=pool if use_pool else None)
     response = _build_response(brief, result)
     metadata = EvalMetadata(
         completion_score=1.0 if result.verification.passed else 0.0,
@@ -113,6 +118,13 @@ def _run_and_build_metadata(brief: str) -> tuple[str, EvalMetadata]:
             "roles": result.team_design.roles,
             "verification_passed": result.verification.passed,
             "golden_set_size": len(result.verification.golden_set or []),
+            # Part X — Pool 재사용이 실제로 어느 역할에 무슨 판단을 내렸는지 결과
+            # JSON에 남긴다(compose_result 미사용 시 None: v3 경로 그대로라는 뜻).
+            "pool_decisions": (
+                {d.role: d.action for d in result.compose_result.decisions}
+                if result.compose_result is not None
+                else None
+            ),
         },
     )
     return response, metadata
@@ -143,8 +155,10 @@ def _run_and_build_metadata(brief: str) -> tuple[str, EvalMetadata]:
     # 실제로 유의미한 신호는 tool_calls(프레임워크 이탈=권한 밖 시도) 쪽에서 나온다.
 )
 def run(brief: str) -> tuple[str, EvalMetadata]:
-    """Gate A/B/D/E/F/G 측정용 — 브리프당 파이프라인 1회만 실행한다(정직한 지연 측정)."""
-    return _run_and_build_metadata(brief)
+    """Gate A/B/D/E/F/G 측정용 — 브리프당 파이프라인 1회만 실행한다(정직한 지연 측정).
+    Part X(F5-F8): Pool을 켠다 — 같은 배치 안에서 도메인이 겹치는 이후 브리프는
+    실제로 재사용/부족분만 생성을 거치게 된다(공유 pool 인스턴스, 위 선언 참고)."""
+    return _run_and_build_metadata(brief, use_pool=True)
 
 
 @agent_eval(
@@ -159,5 +173,9 @@ def run(brief: str) -> tuple[str, EvalMetadata]:
 )
 def run_for_reproducibility(brief: str) -> tuple[str, EvalMetadata]:
     """Gate C 재현성 전용 측정 — Gate D(지연)와 관심사를 분리했다. 같은 브리프를
-    3번 실제로 재호출해 도메인/역할 이름이 얼마나 흔들리는지를 잰다."""
+    3번 실제로 재호출해 도메인/역할 이름이 얼마나 흔들리는지를 잰다.
+    Part X: 여기는 의도적으로 Pool을 끈다(use_pool 기본값 False) — 켜면 같은
+    브리프의 2·3번째 재호출이 방금 생성한 역할을 그대로 재사용해버려, 재현성이
+    "Code Generator가 얼마나 안정적인가"가 아니라 "Pool 캐시 히트율"을 재는
+    걸로 의미가 바뀐다. Gate C는 지금 이대로가 정직한 측정이다."""
     return _run_and_build_metadata(brief)

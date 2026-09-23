@@ -65,6 +65,8 @@
 | Pool 오매칭 | Composer가 브리프와 안 맞는 에이전트를 재사용 | Gate A(신규 축) 하락 → 매칭 기준 재조정 |
 | 스키마 불일치 방치 | 자동 연결됐지만 실제로는 데이터가 안 맞음 | F7 3단 에스컬레이션 3단계(사람 flag)로 처리 |
 | Pool 버전 드리프트 | 재사용 에이전트가 업데이트됐는데 기존 조합이 모르고 계속 씀 | NF2, `agent-contract-versioning` skill |
+| **LLM 출력 이스케이프 오류**(실측, v2) | Ollama가 낸 JSON에 잘못된 `\` 이스케이프가 섞여 `json.loads` 자체가 실패 | `eval/smoke_full.py` mock 없는 첫 실행(8건 중 1건)에서 실측. Gate C 하락 대상 — 재시도 또는 응답 정제 로직 필요(Part VII) |
+| **agents.yaml 최상위 키 누락**(실측, v2) | Code Generator가 `agents:` 키 없이 목록만 내보내 Verifier가 "목록이 없거나 비어 있음"으로 정확히 차단 | 같은 실행에서 실측(8건 중 1건). Verifier가 설계대로 작동한 사례 — Gate C/D 하락 대상, 프롬프트에 스키마 예시 추가 검토(Part VII) |
 
 ## 7. Autopilot 활용 계획
 

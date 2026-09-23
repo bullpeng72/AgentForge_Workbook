@@ -22,15 +22,16 @@ def run(
     *,
     interpreter_client: LLMClient | None = None,
     designer_client: LLMClient | None = None,
+    generator_client: LLMClient | None = None,
 ) -> PipelineResult:
-    """v1 파이프라인: Spec Interpreter·Team Designer는 Tier 1 LLM, Code Generator·
-    Verifier는 아직 v0 그대로(템플릿/구문체크) — v2(Part VI 후반)에서 실제화된다.
+    """v2 파이프라인: 4단계 전부 실제 LLM(Tier1: Spec Interpreter·Team Designer,
+    Tier2: Code Generator) + Verifier가 crewai.Agent 실제 생성까지 확인한다.
 
     Composer(F5-F8, Pool 재사용)는 v4(Part X)부터 이 앞단에 들어간다 — 아직 없다.
     """
     golden_data = interpret(brief, client=interpreter_client)
     team_design = design(golden_data, client=designer_client)
-    generated = generate(team_design)
+    generated = generate(team_design, client=generator_client)
     verification = verify(generated)
     return PipelineResult(
         golden_data=golden_data,

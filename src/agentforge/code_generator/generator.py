@@ -1,20 +1,16 @@
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 
+from agentforge.llm.client import LLMClient, OllamaClient
 from agentforge.team_designer.designer import TeamDesign
 
-_AGENTS_YAML_TEMPLATE = """{role_entries}"""
-_AGENT_ENTRY_TEMPLATE = """{slug}:
-  role: {role}
-  goal: {role}의 역할을 수행한다
-  backstory: v0 스텁 — 실제 backstory는 v1(Part VI)에서 채운다
-"""
+_PROMPT = """역할 목록: {roles!r}
 
-_CREW_PY_TEMPLATE = '''"""v0 스텁 — 실제 CrewAI Crew 조립은 v2(Part VI)에서 채운다."""
-
-ROLES = {roles!r}
-'''
+이 역할들로 CrewAI agents.yaml과 crew.py를 만들어라. 아래 JSON 스키마로만 응답하라
+(다른 텍스트 없이, 마크다운 코드펜스 없이):
+{{"agents_yaml": "<YAML 문자열>", "crew_py": "<Python 문자열, from crewai import Agent 로 시작>"}}"""
 
 
 @dataclass
@@ -23,12 +19,12 @@ class GeneratedCode:
     crew_py: str
 
 
-def generate(team_design: TeamDesign) -> GeneratedCode:
-    """v0: 역할목록을 고정 문자열 템플릿에 채워 넣는다. 실제 코드 합성 없음(F3 스텁)."""
-    entries = "\n".join(
-        _AGENT_ENTRY_TEMPLATE.format(slug=role.lower(), role=role)
-        for role in team_design.roles
-    )
-    agents_yaml = _AGENTS_YAML_TEMPLATE.format(role_entries=entries)
-    crew_py = _CREW_PY_TEMPLATE.format(roles=team_design.roles)
-    return GeneratedCode(agents_yaml=agents_yaml, crew_py=crew_py)
+def generate(team_design: TeamDesign, client: LLMClient | None = None) -> GeneratedCode:
+    """v2: Tier 2 LLM(로컬 Ollama)으로 실제 CrewAI 코드를 합성한다(F3).
+
+    client를 안 주면 OllamaClient를 지연 생성한다 — 서버가 안 떠 있으면 여기서 실패한다.
+    """
+    client = client or OllamaClient()
+    raw = client.complete(_PROMPT.format(roles=team_design.roles))
+    data = json.loads(raw)
+    return GeneratedCode(agents_yaml=data["agents_yaml"], crew_py=data["crew_py"])

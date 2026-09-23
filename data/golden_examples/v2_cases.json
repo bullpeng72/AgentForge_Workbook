@@ -1,0 +1,51 @@
+[
+  {
+    "id": "v2-01-support",
+    "brief": "고객 지원 티켓을 분류하고 우선순위를 매기는 에이전트 팀을 만들어줘",
+    "expected_domain": "support",
+    "expected_roles": ["Classifier", "Responder"]
+  },
+  {
+    "id": "v2-02-research",
+    "brief": "여러 출처에서 리서치 자료를 모아 보고서를 작성하는 팀을 만들어줘",
+    "expected_domain": "research",
+    "expected_roles": ["Researcher", "Writer"]
+  },
+  {
+    "id": "v2-03-code_review",
+    "brief": "코드 리뷰를 자동으로 해주는 에이전트를 만들어줘",
+    "expected_domain": "code_review",
+    "expected_roles": ["Reviewer"]
+  },
+  {
+    "id": "v2-04-ambiguous",
+    "brief": "뭔가 도와주는 것 좀 만들어줘",
+    "expected_domain": "generic",
+    "expected_roles": ["Worker"],
+    "note": "의도적으로 모호한 브리프 — Gate A 실패모드(SPEC §6) 재현용, v0부터 유지"
+  },
+  {
+    "id": "v2-05-content_marketing",
+    "brief": "이메일 마케팅 캠페인 문구를 작성하는 팀을 만들어줘",
+    "expected_domain": "content_marketing",
+    "expected_roles": ["Copywriter"]
+  },
+  {
+    "id": "v2-06-legal_review",
+    "brief": "법률 계약서를 검토하고 위험 조항을 찾아주는 에이전트를 만들어줘",
+    "expected_domain": "legal_review",
+    "expected_roles": ["LegalReviewer"]
+  },
+  {
+    "id": "v2-07-data_analysis",
+    "brief": "판매 데이터를 분석해서 인사이트를 뽑아주는 에이전트를 만들어줘",
+    "expected_domain": "data_analysis",
+    "expected_roles": ["DataAnalyst"]
+  },
+  {
+    "id": "v2-08-translation",
+    "brief": "영어 문서를 한국어로 번역하는 에이전트를 만들어줘",
+    "expected_domain": "translation",
+    "expected_roles": ["Translator"]
+  }
+]

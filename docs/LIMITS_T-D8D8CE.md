@@ -45,3 +45,27 @@ occurrences)"였다. 원인은 명확하다 — 이 시점까지 연 승인이 `
 실제로 6번 반복된 진짜 절차(아래 3개 스킬)를 수작업으로 스킬화한다 — `skills
 scaffold`(탐지된 후보 필요)가 아니라 직접 작성. `skill_merge` 승인 시 이 근거(반복
 횟수·커밋 해시)를 그대로 명시한다.
+
+## L4 — Composer의 자동 어댑터가 실전 역할명 변동성 앞에서 자주 flag_for_human으로 샌다 (Part X, 실측)
+
+`eval/run_pool_batch.py`(같은 도메인 브리프 3건, 실 GPT-5+Ollama)를 돌려보니, 3건 중
+exact reuse는 1건(`Orchestrator`) 실제로 발동했지만, 자동 어댑터(`reuse_adapted`)는
+단 한 번도 발동하지 않았다 — 근접한 후보가 있었는데도(`Classifier` vs
+`ClassifierTranslator`) 전부 `flag_for_human`으로 샜다.
+
+원인은 두 겹이다. **① 진짜 버그**: `compose()`가 도메인의 pool 후보 전체가 아니라
+`domain_candidates[0]` 하나만 검사했다 — Classifier가 pool에 있어도 그게 첫 항목이
+아니면(Sanitizer가 먼저 들어와 있으면) 아예 비교 대상에서 빠졌다. 이건 코드로
+고쳤다(전 후보를 스캔, 회귀 테스트로 고정). **② 근본 한계(코드로 못 고침)**:
+`_plausibly_compatible()`은 역할명 단어와 `output_description` 단어의 접두어
+겹침이라는 아주 단순한 휴리스틱이다 — GPT-5가 브리프마다 역할명을
+"Classifier"/"Orchestrator"/"Triage"처럼 자유롭게 재작명하면, 의미상 겹치는
+역할(Triage↔우선순위 분류)도 표면 단어가 전혀 안 겹치면 못 잡는다.
+
+**조치**: 휴리스틱을 임베딩 유사도 등으로 바꿔 이 실측 결과에 맞춰 점수를
+역산하지 않는다 — SPEC §10 결정 3(Pydantic v2, 가벼운 의존성 유지)과 상충하고,
+Part X의 목표는 "3단 에스컬레이션이 실제로 작동하는가"였지 "자동 어댑터
+적중률을 최대화하는가"가 아니었다. `flag_for_human`으로 넘어가는 것 자체가
+설계상 의도된 안전장치(3단계)이므로, 이 실측은 "인간 확인 없이도 되는 구간이
+좁다"는 정직한 한계로 기록하고, 향후 임베딩 기반 유사도 도입이 필요하면 별도
+ADR·실험으로 다룬다.

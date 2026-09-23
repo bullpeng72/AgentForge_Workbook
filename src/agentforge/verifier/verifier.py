@@ -44,6 +44,14 @@ def verify(generated: GeneratedCode, golden_data: GoldenData) -> VerificationRes
     except yaml.YAMLError as exc:
         errors.append(f"agents.yaml 파싱 실패: {exc}")
         parsed_yaml = None
+    else:
+        # 실측(v2-04-ambiguous, gate_run_4): yaml.safe_load는 문법이 유효하기만
+        # 하면 dict가 아닌 값(문자열 등)도 조용히 반환한다 — LLM이 가끔 이런
+        # 형태로 응답했고, 그 결과 parsed_yaml.get(...)에서 AttributeError가
+        # 났다. 파싱 성공≠dict라는 걸 여기서 명시적으로 걸러낸다.
+        if not isinstance(parsed_yaml, dict):
+            errors.append(f"agents.yaml이 dict가 아님(실제 타입: {type(parsed_yaml).__name__})")
+            parsed_yaml = None
 
     try:
         ast.parse(generated.crew_py)
@@ -77,6 +85,9 @@ def _verify_agents_instantiate(parsed_yaml: dict) -> list[str]:
         return ["agents.yaml에 'agents' 목록이 없거나 비어 있음"]
 
     for entry in agent_entries:
+        if not isinstance(entry, dict):
+            errors.append(f"agents 목록 항목이 dict가 아님(실제 타입: {type(entry).__name__})")
+            continue
         try:
             Agent(
                 role=entry["role"],
@@ -84,7 +95,7 @@ def _verify_agents_instantiate(parsed_yaml: dict) -> list[str]:
                 backstory=entry["backstory"],
                 allow_delegation=entry.get("allow_delegation", False),
             )
-        except (KeyError, Exception) as exc:  # noqa: BLE001 — Agent 생성 실패는 전부 검증 실패로 취급
+        except Exception as exc:  # noqa: BLE001 — Agent 생성 실패는 전부 검증 실패로 취급
             errors.append(f"Agent 생성 실패({entry.get('name', '?')}): {exc}")
 
     return errors

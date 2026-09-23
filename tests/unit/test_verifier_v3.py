@@ -49,6 +49,17 @@ def test_verify_still_catches_syntax_errors_like_v0() -> None:
     assert any("파싱 실패" in e for e in result.errors)
 
 
+def test_verify_rejects_agents_yaml_that_parses_to_a_non_dict() -> None:
+    """실측 회귀 테스트(v2-04-ambiguous, gate_run_4) — yaml.safe_load는 문법만 맞으면
+    dict가 아닌 값(순문자열 등)도 조용히 반환한다. 예전엔 이게 그대로
+    parsed_yaml.get(...)까지 흘러가 AttributeError로 파이프라인 전체가 죽었다."""
+    generated = GeneratedCode(agents_yaml="이건 그냥 한 줄짜리 문자열이다", crew_py=_VALID_CREW_PY)
+    golden_data = GoldenData(domain="support", goal="티켓 분류", success_criteria=["정확도 90% 이상"])
+    result = verify(generated, golden_data)  # AttributeError 없이 실패로 처리돼야 한다
+    assert not result.passed
+    assert any("dict가 아님" in e for e in result.errors)
+
+
 def test_verify_builds_golden_set_from_success_criteria() -> None:
     """v3: agents.yaml/crew.py가 유효하면 success_criteria 각 항목이 골든 케이스가
     된다 — 추가 LLM 호출 없이 v1이 이미 뽑아둔 값을 재사용한다."""

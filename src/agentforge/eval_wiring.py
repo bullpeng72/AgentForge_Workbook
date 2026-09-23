@@ -45,6 +45,10 @@ def _build_agent_interactions(result: PipelineResult) -> list[dict]:
         parsed = yaml.safe_load(result.generated.agents_yaml) or {}
     except yaml.YAMLError:
         parsed = {}
+    # 실측(v2-04-ambiguous, gate_run_4): 파싱은 성공해도 dict가 아닌 값(문자열 등)일
+    # 수 있다 — verifier.py에 심은 것과 같은 가드를 여기도 둔다.
+    if not isinstance(parsed, dict):
+        parsed = {}
     actual_roles = {a.get("role") for a in parsed.get("agents", []) if isinstance(a, dict)}
     return [
         {
@@ -58,26 +62,7 @@ def _build_agent_interactions(result: PipelineResult) -> list[dict]:
     ]
 
 
-@agent_eval(
-    monitor,
-    task_type="planning",
-    question_arg="brief",
-    # Gate C: 재현성 — 1회 호출만으론 신호가 약하다. 실제 반복실행 측정은 별도 챕터에서.
-    reproducibility=ReproducibilityConfig(runs=3),
-    # Gate D: 8건 실측(p95=158~191s) 기반 재보정값 — SLA 위반은 해소, 절대 지연으로 인한
-    # perf_score_pre_sla_penalty는 남아 있음(진짜 엔지니어링 과제, 임계값으로 안 가림).
-    sla=SLAConfig(p95_ms=200000.0, p99_ms=280000.0),
-    # Gate G: response에 실제 판단 근거를 담아야 통과한다.
-    explainability=ExplainabilityConfig(require_reasoning=True),
-    # Gate B: SPEC §3이 CrewAI 하나만 허용 — 그 외 프레임워크가 tool_calls에 잡히면 위반.
-    scope=ScopeConfig(allowed_tools=["framework:crewai"], fail_on_violation=False, violation_penalty=0.5),
-    # Gate E: enable_security_metrics=True(위)로 5개 보안 트래커 활성화. 이 파이프라인의
-    # response는 추론 요약 텍스트라 PII/유출 신호는 원래 거의 없다 — 정직하게 밝혀둔다.
-    # 실제로 유의미한 신호는 tool_calls(프레임워크 이탈=권한 밖 시도) 쪽에서 나온다.
-)
-def run(brief: str) -> tuple[str, EvalMetadata]:
-    """AgentForge 파이프라인을 계측한다. Part VII에서 Gate B(스코프)·E(보안)·F(협업
-    일치도)까지 배선을 완성한다 — 7개 Gate 전부 최소 1회는 실측 대상이 된다."""
+def _run_and_build_metadata(brief: str) -> tuple[str, EvalMetadata]:
     result = _run_pipeline(brief)
     response = (
         f"이 브리프는 {result.golden_data.domain} 도메인으로 판단했다. "
@@ -97,3 +82,41 @@ def run(brief: str) -> tuple[str, EvalMetadata]:
         },
     )
     return response, metadata
+
+
+@agent_eval(
+    monitor,
+    task_type="planning",
+    question_arg="brief",
+    # Gate D: 실측 근거 — 단일 실행 5건 타이밍(interpret 16~29s + design 9~18s +
+    # generate 6~12s)이 33~45s에 분포. 앞서 p95=158~191s로 봤던 건 파이프라인이
+    # 느린 게 아니라 ReproducibilityConfig(runs=3)의 추가 2회 실행이 execution_time
+    # 측정 구간 "안에서" 일어나 3회분이 합산됐기 때문(decorators.py 확인함) — 그래서
+    # 재현성은 이 함수에서 빼고 run_for_reproducibility()로 분리했다(Gate C는 거기서).
+    sla=SLAConfig(p95_ms=60000.0, p99_ms=90000.0),
+    # Gate G: response에 실제 판단 근거를 담아야 통과한다.
+    explainability=ExplainabilityConfig(require_reasoning=True),
+    # Gate B: SPEC §3이 CrewAI 하나만 허용 — 그 외 프레임워크가 tool_calls에 잡히면 위반.
+    scope=ScopeConfig(allowed_tools=["framework:crewai"], fail_on_violation=False, violation_penalty=0.5),
+    # Gate E: enable_security_metrics=True(위)로 5개 보안 트래커 활성화. 이 파이프라인의
+    # response는 추론 요약 텍스트라 PII/유출 신호는 원래 거의 없다 — 정직하게 밝혀둔다.
+    # 실제로 유의미한 신호는 tool_calls(프레임워크 이탈=권한 밖 시도) 쪽에서 나온다.
+)
+def run(brief: str) -> tuple[str, EvalMetadata]:
+    """Gate A/B/D/E/F/G 측정용 — 브리프당 파이프라인 1회만 실행한다(정직한 지연 측정)."""
+    return _run_and_build_metadata(brief)
+
+
+@agent_eval(
+    monitor,
+    task_type="planning",
+    question_arg="brief",
+    task_id_fn=lambda args, kwargs: f"repro_{hash(args[0] if args else kwargs.get('brief', '')) & 0xFFFFFF:x}",
+    # Gate C 전용 — 여기만 재현성을 켠다. execution_time이 3회분 합산되는 건 알고
+    # 있고(위 run()의 docstring 참고), 이 함수 자체를 SLA/Gate D 측정에는 안 쓴다.
+    reproducibility=ReproducibilityConfig(runs=3),
+)
+def run_for_reproducibility(brief: str) -> tuple[str, EvalMetadata]:
+    """Gate C 재현성 전용 측정 — Gate D(지연)와 관심사를 분리했다. 같은 브리프를
+    3번 실제로 재호출해 도메인/역할 이름이 얼마나 흔들리는지를 잰다."""
+    return _run_and_build_metadata(brief)

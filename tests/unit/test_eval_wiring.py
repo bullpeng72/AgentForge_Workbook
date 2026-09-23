@@ -53,3 +53,11 @@ def test_build_agent_interactions_marks_missing_role_as_failure() -> None:
     interactions = _build_agent_interactions(result)
     by_role = {i["context"]["role"]: i["success"] for i in interactions}
     assert by_role == {"Classifier": True, "Responder": False}
+
+
+def test_build_agent_interactions_survives_non_dict_yaml() -> None:
+    """실측 회귀 테스트(v2-04-ambiguous, gate_run_4) — verifier.py와 같은 버그가
+    여기도 있었다: agents_yaml이 dict가 아닌 값으로 파싱되면 AttributeError."""
+    result = _result_with("이건 그냥 문자열이다", "from crewai import Agent\n")
+    interactions = _build_agent_interactions(result)  # AttributeError 없이 끝나야 한다
+    assert all(not i["success"] for i in interactions)

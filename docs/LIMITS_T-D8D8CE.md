@@ -120,3 +120,29 @@ F는 실패(run4)는 했지만 골든셋 8건 시리즈와 다른 하네스를 �
 게이트(A·C·D·F)는 몇 개나 재확인 루프를 완주했는가"로 재해석해 보고한다: 4개 중 3개
 완주(A·C·D), F는 하네스 분리 설계 때문에 미완주. 나머지 3개(B·E·G)는 애초에 이 DoD
 항목의 모집단이 아니다(실패한 적이 없다).
+
+## L7 — `phase_history`의 `mode`/`approved_by`만으로는 승인이 전이를 실제로 막았는지 알 수 없음 (릴리스 후 재검토, 실측)
+
+`.aoo/tasks/T-D8D8CE.json`을 릴리스 후 다시 열어보니, phase 0→2→3→4→5→6→7→8 전이
+8건 전부 `"mode": "auto"`이고 `approved_by`가 하나도 없다 — `adr_review`(phase 3)·
+`skill_merge`(phase 6)·`release_hold`(phase 7)·`deploy`(phase 8) 네 개나 실제
+승인을 거쳐 넘어간 phase인데도 그렇다.
+
+**근본 원인**: `agent_evaluator/gates/autopilot_state.py`의 `transition_phase()`를
+직접 읽어보면, `mode`·`approved_by`는 `required_approval_kind` 게이트가 통과했는지와
+**완전히 무관한 별도의 CLI 인자**다(`--mode`/`--approved-by`를 그 호출에서 따로
+넘겨야만 기록된다). `required_approval_kind` 게이트 자체는 `.aoo/phase_policy.json`에
+그 phase 번호가 선언돼 있으면 `agent-eval autopilot phase transition`이 자동으로
+불러와 적용하고, 승인이 없으면 그 자리에서 `ValueError`로 막는다 — 이 프로젝트는
+Part III에서 phase 3·6·7·8에 policy를 미리 선언해뒀고(LIMITS L1 이후 조치), 그
+전이들이 전부 조용히 성공했다는 사실 자체가 게이트가 실제로 적용·통과했다는
+정황 증거이긴 하다. 하지만 **`phase_history` 파일만 보면 이 정황을 전혀 알 수
+없다** — `mode: "auto"`, `approved_by` 없음이라는 기록은 "게이트가 없었다"는
+뜻도 될 수 있고 "게이트는 있었지만 `--approved-by`를 안 넘겼다"는 뜻도 될 수 있어,
+둘을 구분할 방법이 이 파일 안에는 없다.
+
+**조치**: `phase_history`를 감사 증거로 쓰려면 `--approved-by NAME`을 매 전이마다
+명시적으로 함께 넘기는 습관이 필요하다 — 이 프로젝트는 그렇게 하지 않았다. 지금 와서
+과거 전이 기록을 소급 조작하지 않는다. 대신 이 갭을 기록해 다음 프로젝트가
+`phase_policy.json` 선언만으로 안심하지 않고 `--approved-by`까지 같이 넘기게
+한다.
